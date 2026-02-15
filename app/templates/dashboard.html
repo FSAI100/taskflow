@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}我的任务{% endblock %}
+{% block content %}
+<div class="dashboard">
+  <!-- 左侧：任务列表 -->
+  <div class="panel tasks-panel">
+    <div class="panel-header">
+      <h3>📋 我的任务</h3>
+      <button onclick="showAddTask()">+ 添加</button>
+    </div>
+    <div id="add-task-form" style="display:none">
+      <input type="text" id="new-task-title" placeholder="任务标题">
+      <select id="new-task-priority">
+        <option value="low">低</option>
+        <option value="medium" selected>中</option>
+        <option value="high">高</option>
+        <option value="urgent">紧急</option>
+      </select>
+      <button onclick="addTask()">确认添加</button>
+    </div>
+    <div id="task-list">加载中...</div>
+  </div>
+
+  <!-- 右侧：AI 聊天 -->
+  <div class="panel chat-panel">
+    <div class="panel-header"><h3>🤖 AI 助手</h3></div>
+    <div id="chat-messages" class="chat-messages">
+      <div class="msg ai">你好！我是 TaskFlow AI 助手，你可以用自然语言管理任务。</div>
+    </div>
+    <div class="chat-input">
+      <input type="text" id="chat-input" placeholder="输入消息..." onkeypress="if(event.key==='Enter')sendChat()">
+      <button onclick="sendChat()">发送</button>
+    </div>
+  </div>
+</div>
+{% endblock %}

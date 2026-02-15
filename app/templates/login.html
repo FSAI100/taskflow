@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}登录{% endblock %}
+{% block content %}
+<div class="login-card">
+  <h2>登录 TaskFlow</h2>
+  <input type="text" id="username" placeholder="用户名">
+  <input type="password" id="password" placeholder="密码">
+  <button onclick="doLogin()">登录</button>
+  <p id="login-error" style="color:red"></p>
+  <p>没有账号？<button onclick="doRegister()">注册</button></p>
+  <p><a href="#" onclick="toggleReset(); return false;">忘记密码？</a></p>
+  <div id="reset-form" style="display:none; margin-top:12px">
+    <input type="password" id="new-password" placeholder="新密码">
+    <button onclick="doResetPassword()">重置密码</button>
+    <p id="reset-msg" style="color:green"></p>
+  </div>
+</div>
+{% endblock %}

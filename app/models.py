@@ -48,6 +48,11 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class ResetPasswordRequest(BaseModel):
+    username: str
+    new_password: str
+
+
 # ── 任务表（加了 user_id 外键）──
 class Task(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

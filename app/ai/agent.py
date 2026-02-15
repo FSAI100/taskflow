@@ -32,7 +32,6 @@ tools = [create_task, list_tasks, update_task, get_task_summary]
 agent = create_react_agent(
     model=llm,
     tools=tools,
-    state_modifier=SYSTEM_PROMPT,  # 注入 System Prompt
 )
 
 
@@ -41,10 +40,19 @@ def chat_with_agent(user_message: str) -> str:
     主入口：传入用户消息，返回 Agent 回复文本。
     Agent 会自动决定是否调用工具、调用哪个工具。
     """
-    result = agent.invoke({"messages": [{"role": "user", "content": user_message}]})
+    result = agent.invoke(
+        {
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": user_message},
+            ]
+        }
+    )
     # 取最后一条 AI 回复
     ai_messages = [
-        m for m in result["messages"] if hasattr(m, "content") and m.type == "ai"
+        m
+        for m in result["messages"]
+        if hasattr(m, "content") and getattr(m, "type", None) == "ai"
     ]
     if ai_messages:
         return ai_messages[-1].content
