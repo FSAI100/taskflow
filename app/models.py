@@ -1,17 +1,14 @@
-"""
-TaskFlow 数据模型
-定义 API 请求和响应的数据结构
-"""
+"""TaskFlow 数据模型 V2 — 数据库版"""
 
-from pydantic import BaseModel, Field
+from sqlmodel import SQLModel, Field
 from typing import Optional
 from datetime import datetime
 from enum import Enum
+from pydantic import BaseModel
 
 
+# ── 枚举（和 V1 一样）──
 class Priority(str, Enum):
-    """任务优先级枚举"""
-
     low = "low"
     medium = "medium"
     high = "high"
@@ -19,39 +16,59 @@ class Priority(str, Enum):
 
 
 class TaskStatus(str, Enum):
-    """任务状态枚举"""
-
     todo = "todo"
     in_progress = "in_progress"
     done = "done"
     cancelled = "cancelled"
 
 
-class TaskCreate(BaseModel):
-    """创建任务时的请求体"""
+# ── 用户表 ──
+class User(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    username: str = Field(unique=True, index=True, min_length=3)
+    email: str = Field(unique=True, index=True)
+    hashed_password: str
+    created_at: datetime = Field(default_factory=datetime.now)
 
-    title: str = Field(..., min_length=1, max_length=200, examples=["完成项目报告"])
-    description: Optional[str] = Field(None, max_length=2000)
+
+class UserCreate(BaseModel):
+    username: str
+    email: str
+    password: str
+
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    email: str
+
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+# ── 任务表（加了 user_id 外键）──
+class Task(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    title: str = Field(min_length=1, max_length=200)
+    description: Optional[str] = None
+    priority: str = "medium"
+    status: str = "todo"
+    user_id: int = Field(foreign_key="user.id")
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
+
+
+class TaskCreate(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+    description: Optional[str] = None
     priority: Priority = Priority.medium
     status: TaskStatus = TaskStatus.todo
 
 
 class TaskUpdate(BaseModel):
-    """更新任务时的请求体（所有字段可选）"""
-
-    title: Optional[str] = Field(None, min_length=1, max_length=200)
-    description: Optional[str] = Field(None, max_length=2000)
+    title: Optional[str] = None
+    description: Optional[str] = None
     priority: Optional[Priority] = None
     status: Optional[TaskStatus] = None
-
-
-class TaskResponse(BaseModel):
-    """返回给用户的任务数据"""
-
-    id: int
-    title: str
-    description: Optional[str] = None
-    priority: Priority
-    status: TaskStatus
-    created_at: datetime
-    updated_at: datetime

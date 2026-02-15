@@ -1,20 +1,26 @@
 """
 TaskFlow — 任务管理 API
-V1: 内存存储版本
+V3: 数据库存储、用户认证、ai 聊天功能
 """
 
 from fastapi import FastAPI
-from app.routes import tasks
+from app.database import create_db
+from app.routes import tasks, users, chat  # ← 加了 chat
 
 # ── 创建 FastAPI 应用实例 ──
-app = FastAPI(
-    title="TaskFlow API",
-    description="一个不断进化的任务管理系统",
-    version="1.0.0",
-)
+app = FastAPI(title="TaskFlow API", version="3.0.0")
+
+
+# ── 启动时自动建表 ──
+@app.on_event("startup")
+def on_startup():
+    create_db()
+
 
 # ── 注册路由 ──
+app.include_router(users.router)
 app.include_router(tasks.router)
+app.include_router(chat.router)  # ← 新增
 
 
 # ── 根路径 —— 健康检查 ──
@@ -22,7 +28,6 @@ app.include_router(tasks.router)
 def root():
     return {
         "app": "TaskFlow",
-        "version": "1.0.0",
-        "docs": "/docs",
-        "message": "访问 /docs 查看完整 API 文档",
+        "version": "3.0.0",
+        "features": ["CRUD", "Auth", "AI Chat"],
     }
