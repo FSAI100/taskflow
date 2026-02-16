@@ -36,6 +36,24 @@ def chat(
     # 告诉工具函数"当前是谁在操作"
     set_current_user_id(user.id)
 
-    # 调用 Agent
-    reply = chat_with_agent(req.message)
-    return ChatResponse(reply=reply)
+    try:
+        reply = chat_with_agent(req.message)
+        return ChatResponse(reply=reply)
+    except Exception as e:
+        err_msg = str(e) if str(e) else repr(e)
+        return ChatResponse(reply="AI 服务暂时不可用，请稍后重试。错误：" + err_msg)
+
+
+@router.post("/weekly-report")
+def weekly_report(user: User = Depends(get_current_user)):
+    """让 AI 生成本周工作周报"""
+    set_current_user_id(user.id)
+    try:
+        reply = chat_with_agent(
+            "请帮我生成本周工作周报。先查看本周完成的任务，然后按以下格式总结："
+            "1. 本周完成概览（总数）2. 按优先级分类 3. 下周建议。语气专业简洁。"
+        )
+        return {"report": reply}
+    except Exception as e:
+        err_msg = str(e) if str(e) else repr(e)
+        return {"report": "周报生成失败：" + err_msg}

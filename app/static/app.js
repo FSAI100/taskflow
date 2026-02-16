@@ -143,13 +143,27 @@ async function sendChat() {
   // 显示用户消息
   appendMessage('user', msg);
 
-  // 发送给 AI
-  const res = await fetch(API + '/chat/', {
-    method: 'POST', headers: headers(),
-    body: JSON.stringify({message: msg}),
-  });
-  const data = await res.json();
-  appendMessage('ai', data.reply);
+  try {
+    const res = await fetch(API + '/chat/', {
+      method: 'POST', headers: headers(),
+      body: JSON.stringify({message: msg}),
+    });
+    if (!res.ok) {
+      if (res.status === 401) {
+        window.location.href = '/login';
+        return;
+      }
+      const errData = await res.json().catch(() => ({}));
+      const detail = (typeof errData.detail === 'string' ? errData.detail : errData.detail ? String(errData.detail) : null) || ('HTTP ' + res.status);
+      appendMessage('ai', 'AI 请求失败：' + detail);
+      return;
+    }
+    const data = await res.json();
+    const reply = data && data.reply;
+    appendMessage('ai', reply != null ? reply : 'AI 未返回有效回复');
+  } catch (e) {
+    appendMessage('ai', 'AI 请求失败：' + (e.message || '网络错误'));
+  }
 
   // AI 可能操作了任务，刷新列表
   loadTasks();

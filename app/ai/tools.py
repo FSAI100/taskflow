@@ -5,7 +5,7 @@ LLM 会根据函数名和 docstring 判断何时调用哪个工具。
 
 from langchain_core.tools import tool
 from sqlmodel import Session, select
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 
 from app.database import engine
@@ -84,6 +84,26 @@ def list_tasks(
                 f"{icon} [ID:{t.id}] {t.title} | 优先级:{t.priority} | 状态:{t.status}"
             )
         return "\n".join(lines)
+
+
+@tool
+def get_completed_tasks_this_week() -> str:
+    """获取本周（最近7天）完成的任务列表，用于生成周报。"""
+    with _get_session() as session:
+        week_ago = datetime.now() - timedelta(days=7)
+        query = select(Task).where(
+            Task.user_id == _current_user_id,
+            Task.status == "done",
+            Task.updated_at >= week_ago,
+        )
+        tasks = session.exec(query).all()
+        if not tasks:
+            return "本周没有已完成的任务。"
+        lines = [
+            f"- {t.title} (优先级:{t.priority}, 完成于:{t.updated_at.strftime('%m-%d')})"
+            for t in tasks
+        ]
+        return "本周完成的任务：\n" + "\n".join(lines)
 
 
 @tool
